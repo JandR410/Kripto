@@ -1,5 +1,9 @@
 package com.application.optimization.presentation.addApp
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,9 +18,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.application.optimization.presentation.home.HomeAction
+import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.WorkbookFactory
+import java.io.InputStream
 
 @Composable
 fun AddApp(
@@ -32,10 +41,26 @@ fun AddApp(
     var userCount by remember { mutableStateOf("") }
     var storageUsage by remember { mutableStateOf("") }
 
+    val context = LocalContext.current
+
+    val excelLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let { loadAppsFromExcel(context, it, actionHandler) }
+    }
+
     LazyColumn(modifier = modifier.padding(16.dp)) {
         item {
             Box(modifier = Modifier.padding(vertical = 12.dp)) {
                 Text(text = "Formulario de App")
+            }
+        }
+
+        item {
+            Button(onClick = {
+                excelLauncher.launch(arrayOf("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+            }) {
+                Text("Cargar desde Excel")
             }
         }
 
@@ -151,5 +176,49 @@ fun AddApp(
                 Text("Agregar Aplicación")
             }
         }
+    }
+}
+
+fun loadAppsFromExcel(context: Context, uri: Uri, actionHandler: (HomeAction) -> Unit) {
+    val contentResolver = context.contentResolver
+    val inputStream: InputStream? = contentResolver.openInputStream(uri)
+    inputStream?.use {
+        val workbook = WorkbookFactory.create(it)
+        val sheet = workbook.getSheetAt(0)
+
+        for (row in sheet) {
+            val name = row.getCell(0)?.stringCellValue ?: ""
+            val usageFrequency = getCellNumericOrStringValue(row.getCell(1))
+            val memoryConsumption = getCellNumericOrStringValue(row.getCell(2))
+            val cpuUsage = getCellNumericOrStringValue(row.getCell(3))
+            val lastUpdated = row.getCell(4)?.stringCellValue ?: ""
+            val criticality = getCellNumericOrStringValue(row.getCell(5))
+            val userCount = getCellNumericOrStringValue(row.getCell(6))
+            val storageUsage = getCellNumericOrStringValue(row.getCell(7))
+
+            actionHandler(
+                HomeAction.Add(
+                    listOf(
+                        name,
+                        usageFrequency,
+                        memoryConsumption,
+                        cpuUsage,
+                        lastUpdated,
+                        criticality,
+                        userCount,
+                        storageUsage
+                    )
+                )
+            )
+        }
+        workbook.close()
+    }
+}
+
+fun getCellNumericOrStringValue(cell: Cell?): String {
+    return when (cell?.cellType) {
+        CellType.NUMERIC -> cell.numericCellValue.toString()
+        CellType.STRING -> cell.stringCellValue
+        else -> ""
     }
 }

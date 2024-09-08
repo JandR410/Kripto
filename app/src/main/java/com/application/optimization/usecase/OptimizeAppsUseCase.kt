@@ -1,7 +1,10 @@
 package com.application.optimization.usecase
 
+import android.content.Context
 import com.application.optimization.domain.AppInfo
-import com.application.optimization.usecase.OptimizationColor
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 class OptimizeAppsUseCase @Inject constructor() {
@@ -68,6 +71,40 @@ class OptimizeAppsUseCase @Inject constructor() {
             OptimizationRecommendation(app, action, color)
         }
     }
+
+    fun exportAppsToExcel(context: Context, apps: List<AppInfo>) {
+        val workbook = XSSFWorkbook()
+        val sheet = workbook.createSheet("Aplicaciones")
+
+        val headerRow = sheet.createRow(0)
+        headerRow.createCell(0).setCellValue("Nombre")
+        headerRow.createCell(1).setCellValue("Frecuencia de Uso")
+        headerRow.createCell(2).setCellValue("Memoria Consumida (MB)")
+        headerRow.createCell(3).setCellValue("Uso de CPU (%)")
+        headerRow.createCell(4).setCellValue("Última Actualización")
+        headerRow.createCell(5).setCellValue("Criticidad")
+        headerRow.createCell(6).setCellValue("Usuarios Activos")
+        headerRow.createCell(7).setCellValue("Almacenamiento (GB)")
+
+        apps.forEachIndexed { index, app ->
+            val row = sheet.createRow(index + 1)
+            row.createCell(0).setCellValue(app.name)
+            row.createCell(1).setCellValue(app.usageFrequency.toString())
+            row.createCell(2).setCellValue(app.memoryConsumption)
+            row.createCell(3).setCellValue(app.cpuUsage)
+            row.createCell(4).setCellValue(app.lastUpdated)
+            row.createCell(5).setCellValue(app.criticality.toString())
+            row.createCell(6).setCellValue(app.userCount.toString())
+            row.createCell(7).setCellValue(app.storageUsage)
+        }
+
+        val file = File(context.getExternalFilesDir(null), "aplicaciones.xlsx")
+        FileOutputStream(file).use { outputStream ->
+            workbook.write(outputStream)
+        }
+        workbook.close()
+    }
+
 }
 
 data class OptimizationRecommendation(

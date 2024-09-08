@@ -1,5 +1,6 @@
 package com.application.optimization.presentation.home
 
+import android.content.Context
 import com.application.optimization.base.screen.ScreenAction
 import com.application.optimization.domain.AppInfo
 
@@ -10,4 +11,5 @@ sealed class HomeAction: ScreenAction {
     data object ShowAppInfoClose : HomeAction()
     data class OptimizeAppUseCase(val appInfo: List<AppInfo>, val selectedCriteria: String) : HomeAction()
     data object ToggleOptimos : HomeAction()
+    data class ExportExcel (val context: Context ) : HomeAction()
 }

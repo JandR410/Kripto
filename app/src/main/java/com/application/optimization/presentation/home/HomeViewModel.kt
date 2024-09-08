@@ -1,5 +1,6 @@
 package com.application.optimization.presentation.home
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.application.optimization.data.repository.AppRepository
 import com.application.optimization.domain.AppInfo
@@ -18,6 +19,10 @@ class HomeViewModel @Inject constructor(
     private val optimizeAppsUseCase: OptimizeAppsUseCase
 ) : BaseViewModel<HomeState, HomeAction, HomeEvent>(initialState = HomeState.buildInitialState()) {
 
+    init {
+        loadApp()
+    }
+
     override fun handleScreenActions(action: HomeAction) {
         when (action) {
             is HomeAction.Add -> addApplication(action.fieldValues)
@@ -30,6 +35,7 @@ class HomeViewModel @Inject constructor(
             )
 
             is HomeAction.ToggleOptimos -> toggleOptimos()
+            is HomeAction.ExportExcel -> exportAppsToExcel(action.context)
         }
     }
 
@@ -47,7 +53,7 @@ class HomeViewModel @Inject constructor(
             optimizeAppsUseCase.execute(
                 state.listAppInfo,
                 "criterio"
-            ) // Reaplicar el criterio completo
+            )
         } else {
             state.listOptimization.filter {
                 it.color == OptimizationColor.RED || it.color == OptimizationColor.YELLOW
@@ -96,12 +102,11 @@ class HomeViewModel @Inject constructor(
         )
     }
 
-    fun initOptimize() {
-        setState(state.copy(listOptimization = emptyList()))
-    }
-
-    fun initGraph() {
-        setState(state.copy(listOptimization = emptyList()))
+    private fun exportAppsToExcel(context: Context) {
+        viewModelScope.launch {
+            val apps = state.listAppInfo
+            optimizeAppsUseCase.exportAppsToExcel(context, apps)
+        }
     }
 }
 

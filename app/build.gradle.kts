@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.application.optimization"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -66,6 +66,12 @@ dependencies {
 
     // Coroutine support for Room
     implementation(libs.kotlinx.coroutines.android)
+
+    // excel
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
+
+    //Timber
+    implementation(libs.timber)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

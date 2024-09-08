@@ -1,4 +1,3 @@
-// File: NavigationApp.kt
 package com.application.optimization.presentation.navigation
 
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,11 +21,12 @@ import com.application.optimization.presentation.menu.getMenuTitle
 
 @Composable
 fun NavigationApp() {
+    val viewModel: HomeViewModel = hiltViewModel()
+    val screenState = viewModel.screenState.collectAsState().value
     var selectedItem by remember { mutableStateOf(MenuLabels.HOME) }
     var currentContent by remember { mutableStateOf<MenuApp>(MenuApp.Home) }
     var showDialog by remember { mutableStateOf(false) }
-    val viewModel: HomeViewModel = hiltViewModel()
-    val screenState = viewModel.screenState.collectAsState().value
+
 
     val title = getMenuTitle(currentContent)
 
